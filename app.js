@@ -3,7 +3,10 @@
  **/
  
  var gplay = require('google-play-scraper');
+ var when = require('when');
+ 
  var mysql      = require('mysql');
+ 
  var connection = mysql.createConnection({
     host     : 'localhost',
     user     : 'scraper',
@@ -58,10 +61,16 @@ function scrapCategory(aCategory,aCollection){
 
 // Search all categories and collections
 connection.connect();
+var deferreds = [];
 //scrapCategory(gplay.category.ANDROID_WEAR,gplay.collection.TOP_FREE);
 for (var i in gplay.category) {
     for (var j in gplay.collection){
-        console.log("Scraping ", gplay.category[i]," collection ", gplay.collection[j]); 
-        scrapCategory(gplay.category[i],gplay.collection[j]);
+        console.log("Scraping ", gplay.category[i]," collection ", gplay.collection[j]);
+        deferreds.push(scrapCategory(gplay.category[i],gplay.collection[j]));
+        //scrapCategory(gplay.category[i],gplay.collection[j]);
     }
 }
+
+when.all(deferreds).then(function () {
+    console.log('Finished Promises');
+});

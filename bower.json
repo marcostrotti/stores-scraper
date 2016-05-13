@@ -1,0 +1,25 @@
+{
+  "name": "stores-scraper",
+  "homepage": "https://github.com/marcostrotti/stores-scraper",
+  "authors": [
+    "Marcos H. Trotti <trotti@econ.unicen.edu.ar>"
+  ],
+  "description": "",
+  "main": "app.js",
+  "moduleType": [
+    "node"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "lodash": "~4.12.0",
+    "when": "~3.7.7"
+  }
+}
