@@ -32,7 +32,7 @@ function updateOrInsertApp(appEntry){
     var escapedDeveloper=connection.escape(appEntry.developer);
     var strQuery= "INSERT INTO apps (appId, title, developer) VALUES ("+escapedAppId+", "+escapedTitle+", "+escapedDeveloper+") " + 
     " ON DUPLICATE KEY UPDATE title="+escapedTitle+" , developer="+escapedDeveloper;
-    connection.query(strQuery, function(err, rows, fields) {
+    return connection.query(strQuery, function(err, rows, fields) {
         if (err) 
             console.log('[Erroor] '+ err);
     });  
@@ -41,36 +41,44 @@ function updateOrInsertApp(appEntry){
 
 
 function scrapCategory(aCategory,aCollection){
-    gplay.list({
-        category: aCategory,
-        collection: aCollection,
-        num: 120
-    })
-    .then(function(apps){
-        
-        apps.forEach(function(appEntry) {    
-            updateOrInsertApp(appEntry);
+    var promise = when.promise(function(resolve, reject, notify) {
+        gplay.list({
+            category: aCategory,
+            collection: aCollection,
+            num: 120
+        })
+        .then(function(apps){
+            var defs = [];
+            apps.forEach(function(appEntry) {    
+                defs.push(updateOrInsertApp(appEntry));
+            });
+            when.all(defs).then(function () {
+                console.log('Finished Promises ',aCategory,' - ',aCollection);
+                resolve(true);
+            });
+            console.log('Resolve ',aCategory,' - ',aCollection);
+        })
+        .catch(function(e){
+            console.log('There was an error fetching the list! ',e.message);
+            resolve(false);
+            //resolve(false);
         });
-       // connection.end(function(err) { if(err) console.error('Error On DB Close.'); });
-    })
-    .catch(function(e){
-        console.log('There was an error fetching the list!');
     });
+    return promise;
 }
 
 
 // Search all categories and collections
 connection.connect();
 var deferreds = [];
-//scrapCategory(gplay.category.ANDROID_WEAR,gplay.collection.TOP_FREE);
+
 for (var i in gplay.category) {
     for (var j in gplay.collection){
-        console.log("Scraping ", gplay.category[i]," collection ", gplay.collection[j]);
         deferreds.push(scrapCategory(gplay.category[i],gplay.collection[j]));
-        //scrapCategory(gplay.category[i],gplay.collection[j]);
     }
 }
 
 when.all(deferreds).then(function () {
-    console.log('Finished Promises');
+    connection.end();
+    console.log('++ +++ All Promises were finished');
 });
