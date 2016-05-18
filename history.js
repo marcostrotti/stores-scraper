@@ -108,7 +108,8 @@ function getAppsFrom(offset){
                 console.log(deferreds.length); 
             });
             when.all(deferreds).then(function () {
-                getAppsFrom(offset+50);
+                if (deferreds.length>0)
+                    getAppsFrom(offset+50);
                 console.log('++ +++ All Promises were finished');
             });
         }
