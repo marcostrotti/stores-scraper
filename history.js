@@ -110,6 +110,8 @@ function getAppsFrom(offset){
             when.all(deferreds).then(function () {
                 if (deferreds.length>0)
                     getAppsFrom(offset+50);
+                else
+                    conn.end();
                 console.log('++ +++ All Promises were finished');
             });
         }
