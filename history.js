@@ -103,9 +103,7 @@ function getAppsFrom(offset){
         else{
             deferreds = [];
             rows.forEach(function(entry){
-                console.log(entry.appId);
-                deferreds.push(getAppInformation(entry.appId));    
-                console.log(deferreds.length); 
+                deferreds.push(getAppInformation(entry.appId));     
             });
             when.all(deferreds).then(function () {
                 if (deferreds.length>0)
