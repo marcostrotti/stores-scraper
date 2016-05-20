@@ -39,36 +39,43 @@ function insertStatus(appEntry){
     
     var strQuery= "INSERT INTO stats SET " +
          "appId="+ escapedAppId +" , "+
-         "title="+escapedTitle +" , "+
-         "url="+escapedUrl +" , "+
-         "icon="+escapedIcon +" , "+
-         "minInstalls="+appEntry.minInstalls +" , "+
-         "maxInstalls="+appEntry.maxInstalls +" , "+
-         "score="+conn.escape(appEntry.score) +" , "+
+         "title="+escapedTitle +", "+
+         "url="+escapedUrl +", "+
+         "icon="+escapedIcon +", "+
+         "minInstalls="+appEntry.minInstalls +", "+
+         "maxInstalls="+appEntry.maxInstalls +", "+
+         "score="+conn.escape(appEntry.score) +", "+
          //"reviews="+appEntry.reviews +" , "+
          //"histogram="+escapedHistogram +" , "+
-         "description="+escapedDescription +" , "+
-         "descriptionHTML="+escapedDescriptionHTML +" , "+
-         "developer="+escapedDeveloper +" , "+
-         "developerEmail="+escapedDeveloperEmail +" , "+
-         "developerWebsite="+escapedDeveloperWebSite +" , "+
-         "updated="+conn.escape(appEntry.updated) +" , "+
-         "genre="+escapedGenre +" , "+
-         "genreId="+escapedGenreId +" , "+
-         "familyGenre="+escapedFamilyGenre +" , "+
-         "familyGenreId="+escapedfamilyGenreId +" , "+
-         "version="+conn.escape(appEntry.version) +" , "+
-         "size="+escapedSize +" , "+
-         "requiredAndroidVersion="+escapedRequiredAndroidVersion +" , "+
-         "contentRating="+escapedContentRating +" , "+
-         "price="+conn.escape(appEntry.price) +" , "+
-         "free="+appEntry.free +" , "+
-         "video="+escapedVideo;     
-    return conn.query(strQuery, function(err, rows, fields) {
-        if (err) 
-            console.log('[Erroor] '+ err);
-        console.log('++ + + + + Retrieved application: + + + + ',escapedAppId);
-    });  
+         "description="+escapedDescription +", "+
+         "descriptionHTML="+escapedDescriptionHTML +", "+
+         "developer="+escapedDeveloper +", "+
+         "developerEmail="+escapedDeveloperEmail +", "+
+         "developerWebsite="+escapedDeveloperWebSite +", "+
+         "updated="+conn.escape(appEntry.updated) +", "+
+         "genre="+escapedGenre +", "+
+         "genreId="+escapedGenreId +", "+
+         "familyGenre="+escapedFamilyGenre +", "+
+         "familyGenreId="+escapedfamilyGenreId +", "+
+         "version="+conn.escape(appEntry.version) +", "+
+         "size="+escapedSize +", "+
+         "requiredAndroidVersion="+escapedRequiredAndroidVersion +", "+
+         "contentRating="+escapedContentRating +", "+
+         "price="+conn.escape(appEntry.price) +", "+
+         "free="+appEntry.free +", "+
+         "video="+escapedVideo;
+    /**
+     * 
+     * Ever return true whitout import insert result
+     *  */          
+    return when.promise(function(resolve, reject, notify) {
+            conn.query(strQuery, function(err, rows, fields) {
+                if (err) 
+                    console.log('[Erroor] '+ err);
+                resolve(true);
+                console.log('++ + + + + Retrieved application: + + + + ',escapedAppId);
+            });
+        });    
     
 }
 
@@ -96,6 +103,9 @@ conn.connect();
 var deferreds = [];
 
 function getAppsFrom(offset){
+    /**
+     * Import 30 apps per batch to prevent socket hang up
+     */
     var appsQuery='SELECT appId FROM apps LIMIT 30 OFFSET '+offset;
     conn.query(appsQuery, function(err, rows, fields) {
         if (err) 
@@ -118,4 +128,7 @@ function getAppsFrom(offset){
     });  
 }
 
+/**
+ * Start process
+ */
 getAppsFrom(0);
