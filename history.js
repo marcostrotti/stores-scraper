@@ -96,7 +96,7 @@ conn.connect();
 var deferreds = [];
 
 function getAppsFrom(offset){
-    var appsQuery='SELECT appId FROM apps LIMIT 50 OFFSET '+offset;
+    var appsQuery='SELECT appId FROM apps LIMIT 30 OFFSET '+offset;
     conn.query(appsQuery, function(err, rows, fields) {
         if (err) 
             console.log('[Err] '+ err);
@@ -107,9 +107,11 @@ function getAppsFrom(offset){
             });
             when.all(deferreds).then(function () {
                 if (deferreds.length>0)
-                    getAppsFrom(offset+50);
-                else
+                    getAppsFrom(offset+30);
+                else{
+                    console.log('++ All apps had been searched');
                     conn.end();
+                }
                 console.log('++ +++ All Promises were finished');
             });
         }
