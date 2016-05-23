@@ -68,18 +68,20 @@ function scrapCategory(aCategory,aCollection){
     return promise;
 }
 
-
 // Search all categories and collections
 conn.connect();
-var deferreds = [];
-
+var pendingFunctions=[];
+/**
+ * TODO: improve to provent socker hang up when query
+ */
 for (var i in gplay.category) {
     for (var j in gplay.collection){
-        deferreds.push(scrapCategory(gplay.category[i],gplay.collection[j]));
+        pendingFunctions.push(scrapCategory(gplay.category[i],gplay.collection[j]));
     }
 }
 
-when.all(deferreds).then(function () {
-    conn.end();
-    console.log('++ +++ All Promises were finished');
+when.all(pendingFunctions).then(function () {
+        conn.end();
+        console.log('++ +++ All Promises were finished');
+        
 });
