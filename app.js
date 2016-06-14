@@ -80,7 +80,8 @@ function handleDisconnect() {
     host     : 'localhost',
     user     : 'scraper',
     password : '',
-    database : 'scraper'
+    database : 'scraper',
+    charset : 'utf8mb4'
     });
 
   conn.connect(function(err) {              // The server is either down

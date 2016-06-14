@@ -8,12 +8,20 @@
  var when = require('when');
  var mysql = require('mysql');
 
- var conn = mysql.createConnection({
-    host     : 'localhost',
-    user     : 'scraper',
-    password : '',
-    database : 'scraper'
- });
+ var winston = require('winston');
+ var logger = new winston.Logger({
+    level: 'verbose',
+    transports: [
+      new (require('winston-daily-rotate-file'))({
+      colorize: 'false',
+      json: false,
+      filename: 'log/scraper-history.log',
+      datePattern: '.yyyy-MM-dd'
+    })
+    ]
+  });
+  
+ var conn;
  
 function insertStatus(appEntry){
     var escapedAppId=conn.escape(appEntry.appId);
@@ -71,9 +79,9 @@ function insertStatus(appEntry){
     return when.promise(function(resolve, reject, notify) {
             conn.query(strQuery, function(err, rows, fields) {
                 if (err) 
-                    console.log('[Erroor] '+ err);
+                    logger.error('[Erroor] '+ err);
                 resolve(true);
-                console.log('++ + + + + Retrieved application: + + + + ',escapedAppId);
+                logger.info('++ + + + + Retrieved application: + + + + ',escapedAppId);
             });
         });    
     
@@ -86,12 +94,12 @@ function getAppInformation(appid){
             var defs=[];
             defs.push(insertStatus(app));
             when.all(defs).then(function () {
-                console.log('Resolved retrieved application: ',appid);
+                logger.error('Resolved retrieved application: ',appid);
                 resolve(true);
             });
         })
         .catch(function(e){
-            console.log('There was an error fetching the application [',  appid,'] ', e.message);
+            logger.info('There was an error fetching the application [',  appid,'] ', e.message);
             resolve(true);
         }); 
     });
@@ -110,13 +118,13 @@ function handleDisconnect() {
 
   conn.connect(function(err) {              // The server is either down
     if(err) {                                     // or restarting (takes a while sometimes).
-      console.log('error when connecting to db:', err);
+      logger.error('error when connecting to db:', err);
       setTimeout(handleDisconnect, 1000); // We introduce a delay before attempting to reconnect,
     }                                     // to avoid a hot loop, and to allow our node script to
   });                                     // process asynchronous requests in the meantime.
                                           // If you're also serving http, display a 503 error.
   conn.on('error', function(err) {
-    console.log('db error', err);
+    logger.info('db error', err);
     if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
       handleDisconnect();                         // lost due to either server restart, or a
     } else {                                      // connnection idle timeout (the wait_timeout
@@ -136,7 +144,7 @@ function getAppsFrom(offset){
     var appsQuery='SELECT appId FROM apps LIMIT 30 OFFSET '+offset;
     conn.query(appsQuery, function(err, rows, fields) {
         if (err) 
-            console.log('[Err] '+ err);
+            logger.error('[Err] '+ err);
         else{
             deferreds = [];
             rows.forEach(function(entry){
@@ -146,10 +154,10 @@ function getAppsFrom(offset){
                 if (deferreds.length>0)
                     getAppsFrom(offset+30);
                 else{
-                    console.log('++ All apps had been searched');
+                    logger.info('++ All apps had been searched');
                     conn.end();
                 }
-                console.log('++ +++ All Promises were finished');
+                logger.info('++ +++ All Promises were finished');
             });
         }
     });  
