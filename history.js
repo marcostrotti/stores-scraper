@@ -113,7 +113,7 @@ function handleDisconnect() {
     user     : 'scraper',
     password : '',
     database : 'scraper',
-    charset  : 'latin1'
+    charset  : 'utf8mb4'
     });
 
   conn.connect(function(err) {              // The server is either down
