@@ -6,7 +6,18 @@
  var gplay = require('google-play-scraper');
  var when = require('when');
  var mysql = require('mysql');
- 
+ var winston = require('winston');
+ var logger = new winston.Logger({
+    level: 'verbose',
+    transports: [
+      new (require('winston-daily-rotate-file'))({
+      colorize: 'false',
+      json: false,
+      filename: 'log/scraper-apps.log',
+      datePattern: '.yyyy-MM-dd'
+    })
+    ]
+  });
 
  var conn;
  
@@ -16,10 +27,10 @@ function getAppInformation(appEntry){
     
     gplay.app({appId: appEntry.appId})
     .then(function(app){
-        console.log('Retrieved application: ' + app.appId);
+        logger.info('Retrieved application: ' + app.appId);
     })
     .catch(function(e){
-        console.log('There was an error fetching the application!');
+        logger.error('There was an error fetching the application!');
     }); 
 }
 
@@ -31,7 +42,7 @@ function updateOrInsertApp(appEntry){
     " ON DUPLICATE KEY UPDATE title="+escapedTitle+" , developer="+escapedDeveloper;
     return conn.query(strQuery, function(err, rows, fields) {
         if (err) 
-            console.log('[Erroor] '+ err);
+            logger.error('[Erroor] '+ err);
     });  
     
 }
@@ -50,13 +61,13 @@ function scrapCategory(aCategory,aCollection){
                 defs.push(updateOrInsertApp(appEntry));
             });
             when.all(defs).then(function () {
-                console.log('Finished Promises ',aCategory,' - ',aCollection);
+                logger.info('Finished Promises ',aCategory,' - ',aCollection);
                 resolve(true);
             });
-            console.log('Resolve ',aCategory,' - ',aCollection);
+            logger.info('Resolve ',aCategory,' - ',aCollection);
         })
         .catch(function(e){
-            console.log('There was an error fetching the list! ',e.message);
+            logger.error('There was an error fetching the list! ',e.message);
             resolve(false);
         });
     });
@@ -74,13 +85,13 @@ function handleDisconnect() {
 
   conn.connect(function(err) {              // The server is either down
     if(err) {                                     // or restarting (takes a while sometimes).
-      console.log('error when connecting to db:', err);
+      logger.error('error when connecting to db:', err);
       setTimeout(handleDisconnect, 1000); // We introduce a delay before attempting to reconnect,
     }                                     // to avoid a hot loop, and to allow our node script to
   });                                     // process asynchronous requests in the meantime.
                                           // If you're also serving http, display a 503 error.
   conn.on('error', function(err) {
-    console.log('db error', err);
+    logger.error('db error', err);
     if(err.code === 'PROTOCOL_CONNECTION_LOST') { // Connection to the MySQL server is usually
       handleDisconnect();                         // lost due to either server restart, or a
     } else {                                      // connnection idle timeout (the wait_timeout
@@ -102,6 +113,5 @@ for (var i in gplay.category) {
 
 when.all(pendingFunctions).then(function () {
         conn.end();
-        console.log('++ +++ All Promises were finished');
-        
+        logger.info('++ +++ All Promises were finished');       
 });
